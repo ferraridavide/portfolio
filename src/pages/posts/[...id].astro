@@ -1,0 +1,29 @@
+---
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import Prose from '../../layouts/Prose.astro';
+import Comments from '../../components/Comments.astro';
+import { getPosts } from '../../lib/posts';
+
+export const getStaticPaths = (async () => {
+	const posts = await getPosts();
+	/* `id` is a rest param so nested folders (src/content/posts/notes/foo.md)
+	   keep their path segments in the URL */
+	return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<Prose
+	title={post.data.title}
+	description={post.data.description}
+	date={post.data.pubDate}
+	updated={post.data.updatedDate}
+	cover={post.data.cover}
+	headings={headings}
+>
+	<Content />
+	<Comments slot="comments" />
+</Prose>

@@ -1,0 +1,112 @@
+---
+import { Font, Image } from 'astro:assets';
+import type { MarkdownHeading } from 'astro';
+import { IconArrowLeft } from '@tabler/icons-astro';
+import PostNavigation from '../components/PostNavigation.astro';
+import Seo from '../components/Seo.astro';
+import { formatDate } from '../lib/posts';
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description?: string;
+	headings?: MarkdownHeading[];
+	/* Set by post pages; plain MDX pages can leave both dates off */
+	date?: Date;
+	updated?: Date;
+	/* Rendered as the article's lead image; resolved by the collection's
+	   `image()` schema helper, so it arrives as ImageMetadata */
+	cover?: ImageMetadata;
+	/* Where the footer link goes; a section's articles point back at their
+	   own index rather than at the home page */
+	backHref?: string;
+	backLabel?: string;
+	/* MDX pages pass their frontmatter under this key when used via `layout:` */
+	frontmatter?: Props;
+}
+
+const {
+	title,
+	description,
+	date,
+	updated,
+	cover,
+	headings = [],
+	backHref = import.meta.env.BASE_URL,
+	backLabel = 'Back',
+} = Astro.props.frontmatter ?? Astro.props;
+---
+
+<html lang="en" class="motion-safe:scroll-smooth">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} sizes="16x16 32x32" />
+		<link rel="icon" type="image/png" sizes="16x16" href={`${import.meta.env.BASE_URL}favicon-16.png`} />
+		<link rel="icon" type="image/png" sizes="32x32" href={`${import.meta.env.BASE_URL}favicon-32.png`} />
+		<link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}favicon.png`} />
+		<link rel="alternate" type="application/rss+xml" title="Davide Ferrari" href={`${import.meta.env.BASE_URL}index.xml`} />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<Seo
+			title={title}
+			description={description}
+			image={cover}
+			type={date ? 'article' : 'website'}
+			publishedTime={date}
+			modifiedTime={updated}
+		/>
+		<Font cssVariable="--font-geist" preload />
+		<Font cssVariable="--font-geist-mono" />
+		<Font cssVariable="--font-baskerville" />
+		<title>{title}</title>
+	</head>
+	<body>
+		<div class="relative mx-auto max-w-173 px-6 py-12 leading-relaxed sm:py-24">
+			{headings.length > 0 && <PostNavigation headings={headings} />}
+			<main>
+				<h1 class:list={['prose-title', date ? 'mb-2' : 'mb-6']}>
+					{title}
+				</h1>
+				{
+					date && (
+						<p class="mb-6 text-muted-foreground text-sm">
+							<time datetime={date.toISOString()}>{formatDate(date)}</time>
+							{updated && <> · updated {formatDate(updated)}</>}
+						</p>
+					)
+				}
+				{
+					cover && (
+						<Image
+							class="post-cover mb-6"
+							src={cover}
+							alt=""
+							width={644}
+							densities={[1, 2]}
+							format="webp"
+							quality={80}
+							loading="eager"
+							fetchpriority="high"
+						/>
+					)
+				}
+				<div class="prose flex flex-col gap-4 text-gray-1100">
+					<slot />
+				</div>
+				<slot name="comments" />
+				<a
+					class="group mt-10 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-[450] text-gray-1200 transition-colors duration-200 hover:bg-gray-1100/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-1200"
+					href={backHref}
+				>
+					<IconArrowLeft
+						class="motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 motion-safe:group-focus-visible:-translate-x-0.5"
+						size={16}
+						stroke={1.75}
+						aria-hidden="true"
+					/>
+					{backLabel}
+				</a>
+			</main>
+		</div>
+	</body>
+</html>

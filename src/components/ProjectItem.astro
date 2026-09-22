@@ -1,0 +1,32 @@
+---
+import type { ImageMetadata } from 'astro';
+import { coverAttributes } from '../lib/covers';
+
+interface Props {
+  name: string;
+  desc: string;
+  href?: string;
+  year: string;
+  cover?: ImageMetadata | string;
+}
+
+const { name, desc, href = "#", year, cover } = Astro.props;
+---
+
+<a {...await coverAttributes(cover)} class="group/list-item text-sm" href={href}
+      target="_blank"
+      rel="noopener">
+    
+    <div class="flex justify-between relative">
+      <span class="dot inline-block shrink-0 size-1.75 rounded-[2px] m-0.5 absolute -left-1.5 top-1/2 m-0! -translate-y-1/2 -translate-x-full group-hover/list-item:block! hidden! group-focus-visible/list-item:block!"></span>
+        <span>{name}</span>
+    <span class="text-muted-foreground">{year}</span>
+  </div>
+  <p class="text-muted-foreground">{desc}</p>
+</a>
+
+<style>
+    .dot {
+        background-color: var(--base);
+    }
+</style>

@@ -1,0 +1,117 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { profile } from '../lib/site';
+
+interface Props {
+	title: string;
+	description?: string;
+	/* Open Graph card image; posts pass their cover, other pages a fallback */
+	image?: ImageMetadata;
+	/* `article` on posts, `website` everywhere else */
+	type?: 'website' | 'article';
+	publishedTime?: Date;
+	modifiedTime?: Date;
+}
+
+const { title, description, image, type = 'website', publishedTime, modifiedTime } = Astro.props;
+
+/* Astro.url.pathname already carries the configured `base`, and Astro.site is
+   the deploy origin, so this is the absolute URL crawlers should index */
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/* Scrapers want an absolute URL and refuse to resize, so hand them one
+   pre-optimised image capped at the 1200px OG cards are laid out for */
+let card: { url: string; width: number; height: number; wide: boolean } | undefined;
+if (image) {
+	const width = Math.min(1200, image.width);
+	const height = Math.round((image.height / image.width) * width);
+	const optimized = await getImage({ src: image, width, height, format: 'webp', quality: 80 });
+	/* Squarish images (an avatar, say) get cropped badly by the large card */
+	card = { url: new URL(optimized.src, Astro.site).href, width, height, wide: width / height >= 1.5 };
+}
+
+/* Stable @id anchors, so the BlogPosting on a post can point at the very same
+   Person node every other page declares instead of restating the author. */
+const siteUrl = new URL(import.meta.env.BASE_URL, Astro.site).href;
+const personId = `${siteUrl}#person`;
+const siteId = `${siteUrl}#website`;
+
+const person = {
+	'@type': 'Person',
+	'@id': personId,
+	name: profile.name,
+	url: siteUrl,
+	jobTitle: profile.jobTitle,
+	worksFor: { '@type': 'Organization', name: profile.employer },
+	sameAs: Object.values(profile.socials),
+};
+
+const website = {
+	'@type': 'WebSite',
+	'@id': siteId,
+	url: siteUrl,
+	name: profile.name,
+	inLanguage: 'en-US',
+	publisher: { '@id': personId },
+};
+
+const article =
+	type === 'article' && publishedTime
+		? {
+				'@type': 'BlogPosting',
+				'@id': `${canonical.href}#article`,
+				url: canonical.href,
+				headline: title,
+				...(description && { description }),
+				...(card && { image: card.url }),
+				datePublished: publishedTime.toISOString(),
+				/* A post that was never revised reports its publish date rather than
+				   dropping the field, which validators flag as missing */
+				dateModified: (modifiedTime ?? publishedTime).toISOString(),
+				author: { '@id': personId },
+				publisher: { '@id': personId },
+				isPartOf: { '@id': siteId },
+				mainEntityOfPage: canonical.href,
+			}
+		: undefined;
+
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@graph': [person, website, article].filter(Boolean),
+};
+
+/* A raw `<` can end the script element early, so a title containing `</script>`
+   would break out of the block; escaping it keeps the JSON valid either way */
+const jsonLdHtml = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+---
+
+<link rel="canonical" href={canonical} />
+{description && <meta name="description" content={description} />}
+
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={profile.name} />
+<meta property="og:locale" content="en_US" />
+{
+	card && (
+		<>
+			<meta property="og:image" content={card.url} />
+			<meta property="og:image:width" content={String(card.width)} />
+			<meta property="og:image:height" content={String(card.height)} />
+		</>
+	)
+}
+{type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+{type === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime.toISOString()} />}
+
+<meta name="twitter:card" content={card?.wide ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+{card && <meta name="twitter:image" content={card.url} />}
+<meta name="twitter:site" content={profile.twitterHandle} />
+<meta name="twitter:creator" content={profile.twitterHandle} />
+
+<script type="application/ld+json" is:inline set:html={jsonLdHtml} />

@@ -1,0 +1,43 @@
+---
+import { coverAttributes } from '../lib/covers';
+import { flightHref, type Flight } from '../lib/flying';
+import { formatDate } from '../lib/posts';
+
+interface Props {
+  flight: Flight;
+}
+
+const { flight } = Astro.props;
+---
+
+<a
+  href={flightHref(flight)}
+  class="no-underline text-sm flex justify-between gap-4 dot"
+  {...await coverAttributes(flight.data.cover)}
+>
+  <span>
+    {flight.data.title}{flight.data.draft && <span class="text-muted-foreground"> (draft)</span>}
+  </span>
+  <p class="text-muted-foreground shrink-0">
+    <time datetime={flight.data.pubDate.toISOString()}>{formatDate(flight.data.pubDate)}</time>
+  </p>
+</a>
+
+<style>
+  /* Same hover marker as PostItem, so the two listings read as one system */
+  .dot {
+    position: relative;
+  }
+
+  .dot:hover::after {
+    content: "";
+    position: absolute;
+    top: 0.5lh;
+    left: calc(var(--spacing) * -1.5);
+    translate: -100% -50%;
+    border-radius: 2px;
+    height: calc(var(--spacing) * 1.75);
+    width: calc(var(--spacing) * 1.75);
+    background-color: var(--base);
+  }
+</style>

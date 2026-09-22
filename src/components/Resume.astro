@@ -1,0 +1,126 @@
+---
+import { IconDownload } from "@tabler/icons-astro";
+
+interface Props {
+  /** Add the PDF to public/ and pass its URL, e.g. "/cv.pdf". */
+  downloadHref?: string;
+}
+
+const { downloadHref } = Astro.props;
+const DownloadControl = downloadHref ? "a" : "button";
+---
+
+
+  <div class="flex items-center justify-between gap-4">
+    <h1 id="resume-heading">Resume</h1>
+    <DownloadControl
+      class="resume-download link-outline"
+      href={downloadHref}
+      download={downloadHref ? true : undefined}
+      type={downloadHref ? undefined : "button"}
+      disabled={!downloadHref}
+      title={downloadHref ? "Download CV as PDF" : "PDF coming soon"}
+    >
+      <IconDownload size={14} stroke={1.75} aria-hidden="true" />
+      Download
+    </DownloadControl>
+  </div>
+
+  <article>
+    <header>
+      <h2>CloudOps Engineer</h2>
+      <span class="date">2025 - Now</span>
+      <p class="organization">beSharp</p>
+    </header>
+  </article>
+
+  <article>
+    <header>
+      <h2>Cloud Engineering Intern</h2>
+      <span class="date">2025</span>
+      <p class="organization">beSharp</p>
+    </header>
+  </article>
+
+  <article id="maxidata">
+    <header>
+      <h2>Full-Stack Developer</h2>
+      <span class="date">2020 - 2025</span>
+      <p class="organization">Zucchetti (formerly Maxidata)</p>
+    </header>
+  </article>
+
+  <article>
+    <header>
+      <h2>Freelance Software Developer</h2>
+      <span class="date">2019 - 2020</span>
+      <p class="organization">Rodeco Group</p>
+    </header>
+  </article>
+
+  <article>
+    <header>
+      <h2>Master's degree in Computer Engineering</h2>
+      <span class="date">2023 - 2025</span>
+      <p class="organization">Università degli Studi di Pavia</p>
+    </header>
+  </article>
+
+  <article>
+    <header>
+      <h2>Bachelor's degree in Electronic and Computer Engineering</h2>
+      <span class="date">2019 - 2023</span>
+      <p class="organization">Università degli Studi di Pavia</p>
+    </header>
+  </article>
+
+<style>
+  .resume-download {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 6px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--color-surface);
+    padding: 5px 10px;
+    color: var(--color-muted-foreground);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .resume-download[href]:hover {
+    color: var(--color-foreground);
+  }
+
+  .resume-download:disabled {
+    cursor: not-allowed;
+  }
+
+  article {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
+    align-items: baseline;
+  }
+
+  .date, .organization {
+    color: var(--color-muted-foreground);
+  }
+
+  .date {
+    white-space: nowrap;
+  }
+
+  .organization {
+    grid-column: 1 / -1;
+  }
+</style>

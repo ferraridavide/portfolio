@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+@theme {
+  /* Both stacks are emitted by Astro's font pipeline (see astro.config.mjs),
+     which self-hosts the files and appends the fallbacks */
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --font-libre-baskerville: var(--font-baskerville);
+
+  /* Radix-style gray steps used by the page copy */
+  --color-gray-1100: oklch(0.551 0.005 286);
+  --color-gray-1200: oklch(0.241 0.008 286);
+
+  --color-page: #fff;
+  --color-foreground: var(--color-gray-1200);
+  --color-muted-foreground: var(--color-gray-1100);
+
+  /* Code surfaces: one step off the page, so a block reads as an inset panel
+     rather than the black box Shiki ships by default */
+  --color-code: oklch(0.977 0.002 286);
+  --color-code-border: oklch(0.922 0.003 286);
+
+  /* Chip surfaces: the tint an icon button or a segmented track sits on.
+     One step off the page in whichever direction the page is going */
+  --color-surface: oklch(0.958 0.002 286);
+
+  /* Hairline ring drawn over artwork; same value the home page cover card uses */
+  --color-art-ring: #00000012;
+
+  --base: #0b60ff;
+}
+
+/* Tailwind emits theme tokens as custom properties, so dark mode is a re-assignment */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray-1100: oklch(0.712 0.005 286);
+    --color-gray-1200: oklch(0.955 0.003 286);
+    --color-page: oklch(0.178 0.006 286);
+    --color-code: oklch(0.216 0.006 286);
+    --color-code-border: oklch(0.276 0.006 286);
+    --color-surface: oklch(0.246 0.006 286);
+    --color-art-ring: #ffffff1f;
+  }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-gray-1100);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* Rounded focus ring, keyboard users only */
+  .link-outline,
+  .prose a {
+    border-radius: 0.125rem;
+    outline-offset: 2px;
+  }
+
+  .link-outline:focus-visible,
+  .prose a:focus-visible {
+    outline: 2px solid var(--color-gray-1200);
+  }
+
+  /* Underline sitting below the baseline, skipping descenders */
+  .article-underline {
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(in oklch, currentColor 30%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  .article-underline:hover {
+    text-decoration-color: currentColor;
+  }
+
+  /* The home page's inline link treatment, shared with every link in an
+     article body so both read the same. Colour is inherited, the thick
+     underline does the work until hover hands it to the accent */
+  .text-link,
+  .prose a {
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease-out;
+  }
+
+  .text-link:hover,
+  .prose a:hover {
+    color: var(--base);
+  }
+
+  /* The article's lead image. Same radius and hairline ring as the cover card
+     on the home page, so one cover reads the same in both places. No crop:
+     the image keeps its natural aspect ratio */
+  .post-cover {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px var(--color-art-ring);
+  }
+
+  /* ---------------------------------------------------------------------
+     Prose: the article body rendered from Markdown/MDX by Prose.astro.
+     Preflight strips heading sizes, so the scale has to be restated here;
+     it stays deliberately compact to match the rest of the site.
+     --------------------------------------------------------------------- */
+
+  .prose-title,
+  .prose :is(h1, h2, h3, h4, h5, h6) {
+    scroll-margin-top: 3rem;
+    color: var(--color-gray-1200);
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .prose-title,
+  .prose h1 {
+    font-size: 1.375rem;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  .prose h2 {
+    font-size: 1.125rem;
+    line-height: 1.45;
+    letter-spacing: -0.011em;
+  }
+
+  .prose :is(h3, h4) {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .prose h4 {
+    color: var(--color-gray-1100);
+  }
+
+  .prose :is(h5, h6) {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-gray-1100);
+  }
+
+  /* The body is a flex column with `gap-4`, so these only add to that gap:
+     a heading sits far from the section above it and close to its own copy */
+  .prose :is(h1, h2) {
+    margin-top: 1.5rem;
+  }
+
+  .prose :is(h3, h4, h5, h6) {
+    margin-top: 0.75rem;
+  }
+
+  .prose > :first-child {
+    margin-top: 0;
+  }
+
+  /* --- Code ------------------------------------------------------------ */
+
+  .prose :is(pre, code) {
+    font-family: var(--font-mono);
+    font-feature-settings: "liga" 0;
+  }
+
+  /* Inline code: a tint rather than a bordered chip, so a paragraph with
+     several of them stays calm. Sized down so the mono x-height lines up
+     with the surrounding Geist */
+  .prose :not(pre) > code {
+    font-size: 0.875em;
+    color: var(--color-gray-1200);
+    background-color: color-mix(in oklch, var(--color-gray-1100) 13%, transparent);
+    border-radius: 0.25rem;
+    padding: 0.15em 0.35em;
+    overflow-wrap: break-word;
+  }
+
+  .prose pre {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--color-code-border);
+    border-radius: 0.5rem;
+    background-color: var(--color-code);
+    overflow-x: auto;
+    /* Thin, unobtrusive scrollbar instead of the platform default */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-code-border) transparent;
+  }
+
+  .prose pre:focus-visible {
+    outline: 2px solid var(--color-gray-1200);
+    outline-offset: 2px;
+  }
+
+  /* `defaultColor: false` leaves Shiki's two palettes as custom properties on
+     every token, so the theme swap is a single pair of rules (see astro.config.mjs) */
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style);
+    font-weight: var(--shiki-light-font-weight);
+    text-decoration: var(--shiki-light-text-decoration);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .astro-code,
+    .astro-code span {
+      color: var(--shiki-dark);
+      font-style: var(--shiki-dark-font-style);
+      font-weight: var(--shiki-dark-font-weight);
+      text-decoration: var(--shiki-dark-text-decoration);
+    }
+  }
+}
+
+/* The highlight stays the same pale yellow in both schemes, so the ink is
+   pinned rather than inherited: dark mode would otherwise put near-white
+   text on it */
+::selection {
+  background: #feeec3;
+  color: #181818;
+}
+
+   

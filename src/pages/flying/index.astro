@@ -1,0 +1,73 @@
+---
+import { Font } from 'astro:assets';
+import { IconArrowLeft } from '@tabler/icons-astro';
+import CoverTooltip from '../../components/CoverTooltip.astro';
+import FlightItem from '../../components/FlightItem.astro';
+import Seo from '../../components/Seo.astro';
+import { getFlights } from '../../lib/flying';
+import '../../styles/global.css';
+
+const flights = await getFlights();
+const title = 'Flying';
+const description =
+	'Paragliding flights, with the GPS track of each one replayed over the terrain it was flown across.';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} sizes="16x16 32x32" />
+		<link rel="icon" type="image/png" sizes="16x16" href={`${import.meta.env.BASE_URL}favicon-16.png`} />
+		<link rel="icon" type="image/png" sizes="32x32" href={`${import.meta.env.BASE_URL}favicon-32.png`} />
+		<link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}favicon.png`} />
+		<link
+			rel="alternate"
+			type="application/rss+xml"
+			title="Davide Ferrari"
+			href={`${import.meta.env.BASE_URL}index.xml`}
+		/>
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<Seo title={title} description={description} image={flights[0]?.data.cover} />
+		<Font cssVariable="--font-geist" preload />
+		<title>{title}</title>
+	</head>
+	<body>
+		<main class="mx-auto flex min-h-screen max-w-xl grow flex-col gap-12 px-4 py-20">
+			<div class="flex flex-col gap-4">
+				<h1 class="text-foreground">{title}</h1>
+				<p class="text-muted-foreground">
+					I fly paragliders. Badly, so far, but the view is the same either way. Every flight below
+					comes with its GPS track, replayed over the terrain it was actually flown across &mdash;
+					press play and follow along.
+				</p>
+			</div>
+
+			<section class="flex flex-col gap-2" id="flights">
+				{flights.map((flight) => <FlightItem flight={flight} />)}
+			</section>
+			<CoverTooltip scope="#flights" />
+
+			<div>
+				<a
+					class="group inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-[450] text-gray-1200 transition-colors duration-200 hover:bg-gray-1100/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-1200"
+					href={import.meta.env.BASE_URL}
+				>
+					<IconArrowLeft
+						class="motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 motion-safe:group-focus-visible:-translate-x-0.5"
+						size={16}
+						stroke={1.75}
+						aria-hidden="true"
+					/>
+					Back
+				</a>
+			</div>
+		</main>
+	</body>
+</html>
+
+<style>
+	body {
+		color: var(--color-foreground);
+	}
+</style>

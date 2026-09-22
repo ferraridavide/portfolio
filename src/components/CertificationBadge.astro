@@ -1,0 +1,90 @@
+---
+import { FOILS, type Foil } from "../lib/holo";
+
+interface Props {
+  /** Credential name, shown under the badge */
+  name: string;
+  /** Certification tier, e.g. "Foundational" */
+  level?: string;
+  /** Badge artwork in `public/badges`, with transparency */
+  image: string;
+  /** Credential page, opened on click */
+  href: string;
+  /** Which foil the shader reflects off the artwork */
+  finish?: Foil;
+}
+
+const { name, level, image, href, finish = "cubes" } = Astro.props;
+---
+
+<div class="flex min-w-0 flex-col gap-2">
+  <a
+    class="badge-link link-outline"
+    href={href}
+    target="_blank"
+    rel="noopener"
+    data-holo-badge
+    data-foil={FOILS[finish]}
+    aria-label={`${name} — view credential`}
+  >
+    <img src={image} alt="" width="600" height="600" draggable="false" loading="lazy" />
+  </a>
+</div>
+
+<style>
+  /* The link is the badge square: the canvas is appended into it at runtime and
+     covers the PNG, so both the artwork and the foil share one hit target. */
+  .badge-link {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    /* Keep vertical scrolling on touch; only horizontal drags feed the shader */
+    touch-action: pan-y;
+  }
+
+  .badge-link :global(img),
+  .badge-link :global(canvas) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .badge-link :global(img) {
+    object-fit: contain;
+  }
+
+  /* The PNG stays mounted as the fallback: the canvas only takes over once a
+     first valid frame has been presented, and goes back on any WebGPU failure. */
+  .badge-link :global(canvas) {
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .badge-link.is-ready :global(img) {
+    opacity: 0;
+  }
+
+  .badge-link.is-ready :global(canvas) {
+    opacity: 1;
+  }
+
+  @media print {
+    .badge-link :global(canvas) {
+      display: none;
+    }
+
+    .badge-link.is-ready :global(img) {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  import { mountBadges } from "../lib/holo";
+
+  mountBadges();
+</script>

@@ -1,0 +1,100 @@
+.widget {
+  display: block;
+  line-height: 1.5;
+}
+
+.label, .separator, .artist {
+  color: var(--color-muted-foreground);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.equalizer {
+  display: flex;
+  margin-left: auto;
+  flex-shrink: 0;
+  align-items: end;
+  gap: 2px;
+  height: 10px;
+  color: var(--base);
+}
+
+.equalizer i {
+  width: 2px;
+  height: 100%;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: equalize 650ms ease-in-out infinite alternate;
+}
+
+.equalizer i:nth-child(2) { animation-delay: -433ms; }
+.equalizer i:nth-child(3) { animation-delay: -217ms; }
+
+@keyframes equalize {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
+.track {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+
+.title {
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5em;
+}
+
+.timeCurrent { text-align: right; }
+.timeDuration { text-align: left; }
+
+.progressBar {
+  flex: 1;
+  height: 4px;
+  background: var(--color-code-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-foreground);
+  border-radius: 2px;
+  transition: width 0.3s linear;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.link[href]:hover { opacity: 0.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill, .link { transition: none; }
+  .equalizer i { animation: none; }
+  .equalizer i:nth-child(2) { transform: scaleY(0.5); }
+}

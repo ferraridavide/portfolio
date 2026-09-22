@@ -1,0 +1,44 @@
+---
+import { coverAttributes } from '../lib/covers';
+import { formatDate, postHref, type Post } from '../lib/posts';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+---
+
+<a
+  href={postHref(post)}
+  class="no-underline text-sm text-sm flex justify-between dot"
+  {...await coverAttributes(post.data.cover)}
+>
+  <span>{post.data.title}{post.data.draft && <span class="text-muted-foreground"> (draft)</span>}</span>
+  <p class="text-muted-foreground shrink-0">
+    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+  </p>
+</a>
+
+<style>
+  .dot {
+    position: relative;
+  }
+
+  .dot:hover::after {
+    content: "";
+    position: absolute;
+    /* Half a line box down, not half the element: a title that wraps to two
+       lines would otherwise drag the marker into the gap between them. On a
+       single line this resolves to the same place the old `50%` did. */
+    top: 0.5lh;
+    left: calc(var(--spacing) * -1.5);
+
+    translate: -100% -50%;
+
+    border-radius: 2px;
+    height: calc(var(--spacing) * 1.75);
+    width: calc(var(--spacing) * 1.75);
+    background-color: var(--base);
+  }
+</style>

@@ -1,0 +1,274 @@
+---
+import { Font, Image } from "astro:assets";
+import davide from "../assets/davide.jpg";
+import { IconChevronRight, IconBrandGithub, IconBrandX, IconBrandInstagram, IconBrandLinkedin, IconBrandTelegram, IconKey } from '@tabler/icons-astro';
+import "../styles/global.css";
+
+import ProjectItem from "../components/ProjectItem.astro";
+import PostItem from "../components/PostItem.astro";
+import CoverTooltip from "../components/CoverTooltip.astro";
+import sunomiCover from "../assets/sunomi.png";
+import atmosCover from "../assets/atmos.png";
+import volareCover from "../assets/volare.png";
+import chatgptpowertoysCover from "../assets/chatgptpowertoys.png";
+import smoltoolsCover from "../assets/smoltools.png";
+import CertificationBadge from "../components/CertificationBadge.astro";
+import NowPlaying from "../components/NowPlaying.tsx";
+import Resume from "../components/Resume.astro";
+import Seo from "../components/Seo.astro";
+
+import Activity from "../components/Activity.tsx";
+
+import { getPosts } from "../lib/posts";
+import { profile } from "../lib/site";
+
+const name = profile.name;
+
+const posts = await getPosts();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} sizes="16x16 32x32" />
+    <link rel="icon" type="image/png" sizes="16x16" href={`${import.meta.env.BASE_URL}favicon-16.png`} />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${import.meta.env.BASE_URL}favicon-32.png`} />
+    <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}favicon.png`} />
+    <link rel="alternate" type="application/rss+xml" title="Davide Ferrari" href={`${import.meta.env.BASE_URL}index.xml`} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <Seo
+      title={name}
+      description={`${name} — DevOps engineer writing about product engineering.`}
+      image={davide}
+    />
+    <Font cssVariable="--font-geist" preload />
+    <title>{name}</title>
+  </head>
+  <body>
+    <main class="mx-auto flex min-h-screen max-w-xl grow flex-col px-4 py-20 gap-12">
+      <div class="group/app-page-header relative flex flex-col gap-4">
+        <div class="flex justify-between">
+          <div>
+            <h1>{name}</h1>
+            <h1 class="text-muted-foreground">{profile.jobTitle} at {profile.employer}</h1>
+          </div>
+          <div class="flex size-11 shrink-0 items-center justify-center">
+            <Image
+              src={davide}
+              alt={name}
+              width={44}
+              height={44}
+              densities={[1, 2]}
+              format="webp"
+              quality={80}
+              loading="eager"
+              class="size-11 object-cover rounded-md"
+            />
+          </div>
+        </div>
+        <p class="text-muted-foreground">
+          I'm a software engineer currently working in CloudOps. 
+          I like building reliable systems and figuring out how software works underneath the surface.
+          
+          <br/><br/>Outside of work, I build <a href={profile.socials.github} target="_blank" rel="noopener" class="text-link">side projects</a>, experiment with new tech, and occasionally trade a keyboard for a <a href={`${import.meta.env.BASE_URL}flying`} class="text-link">paraglider</a>.
+        </p>
+        <div class="flex gap-4 items-center">
+          <a href={`mailto:${profile.email}`} class="contact-button flex-shrink-0" ><span>Let's chat <IconChevronRight /></span></a>
+          
+            <a href={profile.socials.github} class="link"><IconBrandGithub /></a>
+          <a href={profile.socials.x} class="link"><IconBrandX /></a>
+          <a href={profile.socials.instagram} class="link"><IconBrandInstagram /></a>
+          <a href={profile.socials.linkedin} class="link"><IconBrandLinkedin /></a>
+          <a href={profile.socials.telegram} class="link"><IconBrandTelegram /></a>
+         
+          
+        </div>
+        
+      </div>
+
+
+      
+<section class="flex flex-col gap-2">
+        <NowPlaying client:load />
+        </section> 
+
+
+      <section class="flex flex-col gap-2">
+        <Activity client:load />
+        </section> 
+
+      
+
+      <section class="flex flex-col gap-2" id="posts">
+        <h1>Posts</h1>
+        {posts.map((post) => <PostItem post={post} />)}
+      </section>
+      <CoverTooltip scope="#posts" />
+
+      <section class="flex flex-col gap-2" id="projects">
+          <h1>Projects</h1>
+          <ProjectItem
+            name="Volare"
+            desc="A browser-based paragliding flight visualizer and cinematic video renderer"
+            href="https://github.com/ferraridavide/volare"
+            year="2026"
+            cover={volareCover}
+          />
+           <ProjectItem
+            name="Atmos"
+            cover={atmosCover}
+            desc="A real-time visualization of the Bluesky AT Protocol Jetstream, inspired by GMUNK’s GitHub Gitmos"
+            href="https://github.com/ferraridavide/atmos"
+            year="2026"
+          />
+          <ProjectItem
+          name="Sunomi"
+          cover={sunomiCover}
+          desc="A YouTube-like cloud-native video sharing platform built on AWS"
+          href="https://github.com/ferraridavide/sunomi"
+          year="2025"
+          />
+          <ProjectItem
+          name="ChatGPTPowerToys"
+          cover={chatgptpowertoysCover}
+          desc="PowerToys Run plugin for launching ChatGPT queries in the browser (with +250 stars on GitHub! 🤩)"
+          href="https://github.com/ferraridavide/ChatGPTPowerToys"
+          year="2024"
+          />
+          <ProjectItem
+            name="smaltools"
+            cover={smoltoolsCover}
+            desc="A smol collection of personal tools"
+            href="https://smoltools.davide.im/"
+            year="2024"
+          />
+          <ProjectItem
+          name="aca-project"
+            desc="Distributed path tracing with c-ray and MPI using tiling and sampling for scalable rendering"
+            href="https://github.com/ferraridavide/aca-project"
+            year="2024"
+          />
+          <ProjectItem
+            name="redis2history"
+            desc="Modular ETL pipeline tool developed as part of a bachelor's thesis"
+            href="https://github.com/ferraridavide/redis2history"
+            year="2024"
+          />
+          <ProjectItem  
+            name="rubiks"
+            desc="Rubik's Cube solver using computer vision with ArUco markers and the Kociemba algorithm"
+            href="https://github.com/ferraridavide/rubiks"
+            year="2024"
+          />
+          
+      </section>
+
+      <CoverTooltip scope="#projects" />
+
+      <section class="flex flex-col gap-2">
+      <Resume downloadHref="/davide-ferrari-resume.pdf"/>
+        
+    </section>
+
+      <section class="flex flex-col gap-2">
+        <h1>Certifications</h1>
+        <div class="grid grid-cols-3 gap-4">
+          <CertificationBadge
+            name="Cloud Practitioner"
+            level="Foundational"
+            image={`${import.meta.env.BASE_URL}badges/cloud-practitioner.png`}
+            href="https://www.credly.com/badges/e3467b42-6987-4b34-97b2-068e91eb5c6d"
+            finish="cubes"
+          />
+          <CertificationBadge
+            name="Solutions Architect"
+            level="Associate"
+            image={`${import.meta.env.BASE_URL}badges/solutions-architect.png`}
+            href="https://www.credly.com/badges/ad9ecf61-e0d9-45d0-8d8e-478c886594dd"
+            finish="lattice"
+          />
+        </div>
+      </section>
+
+    </main>
+  </body>
+</html>
+
+<style>
+  body {
+    /* Scoped styles are unlayered, so this wins over the `@layer base` rule
+       in global.css: it has to name the token or dark mode never reaches it */
+    color: var(--color-foreground);
+
+
+    --light: hsl(from var(--base) calc(h + 3) s calc(l + 15));
+    --variant: hsl(from var(--base) calc(h + 2) calc(s - 5) calc(l + 4));
+  }
+
+  .contact-button {
+    border-radius: 8px;
+    height: 32px;
+    background: linear-gradient(var(--light) 0%, var(--base) 100%);
+    justify-content: center;
+    align-items: center;
+    padding: 6px 16px;
+    text-decoration: none;
+    display: inline-flex;
+    box-shadow:
+      inset 0 0 1px 1px #ffffff24,
+      0 0 0 1px #00000014,
+      0 2px 2px #0000000a,
+      0 0 0 1px var(--variant);
+    cursor: pointer;
+    transform: scale(1);
+    transition:
+      filter 0.2s,
+      transform 0.15s;
+  }
+  .contact-button:hover {
+    filter: brightness(105%);
+  }
+
+  .contact-button:active {
+    transform: scale(0.97);
+  }
+
+  .contact-button span {
+    font-size: 14px;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 0.5px #ffffff7a;
+    font-style: normal;
+    font-weight: 575;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .link {
+    background: transparent;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    color: var(--color-muted-foreground);
+    transition: background 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+  }
+
+  .link:hover {
+    background: var(--color-surface);
+    color: var(--color-foreground);
+  }
+  
+  .contact-button span svg {
+    width: 16px;
+    height: 16px;
+    margin-right: -8px;
+  }
+
+  /* `.text-link` now lives in global.css, shared with article body links */
+</style>

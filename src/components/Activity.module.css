@@ -1,0 +1,328 @@
+.profileCells {
+  grid-template-columns: repeat(52, minmax(0px, 1fr));
+  display: grid;
+  gap: 3px;
+
+  /* `--primary` is inherited from the component, which sets it per metric;
+     the shades below are mixed from it, so a new metric needs one colour.
+     Declaring it here would shadow that, hence the var() fallbacks. */
+  --surface: var(--color-page);
+  --empty: color-mix(in srgb, var(--color-gray-1100) 18%, var(--color-page));
+}
+
+.profileWeek {
+        display: grid;
+    gap: 3px;
+    /* The current week has fewer than 7 cells but is still stretched to the
+       height of a full column: pack its rows at the top so they stay cell
+       sized instead of spreading out over the empty days. */
+    align-content: start;
+}
+
+.profileButton {
+        aspect-ratio: 1 / 1;
+    cursor: pointer;
+    width: 100%;
+    min-width: 0px;
+    background: var(--empty);
+    border-width: 0px;
+    border-style: none;
+    border-color: currentcolor;
+    border-image: none;
+    border-radius: 1px;
+    padding: 0px;
+    transition: background-color 0.24s;
+}
+
+.profileButton:hover,
+.profileButton:focus-visible {
+    outline-offset: 1px;
+    outline: var(--primary, rgb(49, 95, 187)) solid 1px;
+}
+
+/* A day with nothing recorded stays neutral, so it never reads as a low
+   value of the metric being shown. */
+.profileButton[data-level="0"],
+.cardSwatch[data-level="0"] {
+    background-color: var(--empty);
+}
+
+.profileButton[data-level="1"],
+.cardSwatch[data-level="1"] {
+    background-color: color-mix(in srgb, var(--primary, rgb(49, 95, 187)) 22%, var(--surface));
+}
+
+.profileButton[data-level="2"],
+.cardSwatch[data-level="2"] {
+    background-color: color-mix(in srgb, var(--primary, rgb(49, 95, 187)) 45%, var(--surface));
+}
+
+.profileButton[data-level="3"],
+.cardSwatch[data-level="3"] {
+    background-color: color-mix(in srgb, var(--primary, rgb(49, 95, 187)) 70%, var(--surface));
+}
+
+.profileButton[data-level="4"],
+.cardSwatch[data-level="4"] {
+    background-color: var(--primary, rgb(49, 95, 187));
+}
+
+
+.profileMonth {
+    grid-template-columns: repeat(52, minmax(0px, 1fr));
+    display: grid;
+    gap: 3px;
+    color: var(--color-muted-foreground);
+    margin-top: 7px;
+    font-size: 9px;
+    box-sizing: border-box;
+}
+
+.profileBox {
+    scrollbar-width: thin;
+    overflow-x: auto;
+    margin: -3px;
+    padding: 3px;
+}
+
+/* Fixed to the viewport, so it is neither clipped by the scroll box nor
+   counted in its scrollable width. Placement comes from the component.
+   Styled to match the post cover card: same radius, ring and layered lift. */
+.tooltip {
+    --card-ring: #00000012;
+    --card-shadow-near: #00000014;
+    --card-shadow-mid: #00000021;
+    --card-shadow-far: #00000030;
+    /* The cell shades are mixed towards these, which .profileCells declares
+       for the grid; the card sits outside it and needs its own pair. */
+    --surface: var(--color-page);
+    --empty: color-mix(in srgb, var(--color-gray-1100) 18%, var(--color-page));
+
+    position: fixed;
+    z-index: 20;
+    width: 15rem;
+    box-sizing: border-box;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background-color: var(--color-page);
+    box-shadow:
+        0 0 0 1px var(--card-ring),
+        0 1px 2px -1px var(--card-shadow-near),
+        0 6px 12px -4px var(--card-shadow-mid),
+        0 22px 44px -12px var(--card-shadow-far);
+    color: var(--color-gray-1200);
+    text-align: left;
+    pointer-events: none;
+
+    opacity: 0;
+    scale: 0.97;
+    /* left/top are set from the component, so they glide between cells
+       instead of the card teleporting across the grid */
+    transition:
+        opacity 0.16s ease,
+        scale 0.16s ease,
+        left 0.16s ease,
+        top 0.16s ease;
+}
+
+.tooltip[data-visible] {
+    opacity: 1;
+    scale: 1;
+}
+
+.tooltip[data-placement="above"] {
+    transform: translate(-50%, -100%);
+    transform-origin: bottom center;
+}
+
+.tooltip[data-placement="below"] {
+    transform: translate(-50%, 0);
+    transform-origin: top center;
+}
+
+/* Outgoing and incoming content share one grid cell, so they overlap for the
+   crossfade and the card still sizes itself to the taller of the two. */
+.tooltipStack {
+    display: grid;
+}
+
+.tooltipStack > * {
+    grid-area: 1 / 1;
+}
+
+.cardLayer {
+    animation: cardLayerIn 0.26s ease both;
+}
+
+.cardLayer[data-leaving] {
+    animation: cardLayerOut 0.26s ease both;
+}
+
+/* A plain crossfade. The blur treatment stays with the post cover card, where
+   it sells one photograph dissolving into another; on text it just reads muddy. */
+@keyframes cardLayerIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes cardLayerOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.cardHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.cardDate {
+    color: var(--color-gray-1100);
+    font-size: 11px;
+}
+
+.cardSwatch {
+    flex-shrink: 0;
+    border-radius: 2px;
+    width: 10px;
+    height: 10px;
+}
+
+.cardValue {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 2px;
+    color: var(--primary-ink, var(--primary, rgb(49, 95, 187)));
+    font-size: 20px;
+    font-weight: 560;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.cardUnit {
+    color: var(--color-gray-1100);
+    font-size: 11px;
+    font-weight: 450;
+}
+
+.cardMuted {
+    margin-top: 2px;
+    color: var(--color-gray-1100);
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.cardRows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 8px 0 0;
+    border-top: 1px solid var(--card-ring);
+    padding-top: 7px;
+    font-size: 11px;
+}
+
+.cardRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.cardRow dt {
+    color: var(--color-gray-1100);
+}
+
+.cardRow dd {
+    margin: 0;
+    color: var(--color-gray-1200);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Model ids are long and must not stretch the card */
+.cardModel {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+    .tooltip {
+        --card-ring: #ffffff1f;
+        --card-shadow-near: #0000004d;
+        --card-shadow-mid: #00000061;
+        --card-shadow-far: #0000007a;
+    }
+
+    /* The metric primaries are picked to carry on white. As *text* on a dark
+       card they fall under 4.5:1, so every text use lightens them; the cell
+       fills keep the unmodified colour. */
+    .tooltip,
+    .metricToggle {
+        --primary-ink: color-mix(in oklch, var(--primary) 55%, white);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tooltip {
+        transition-duration: 0.01ms;
+    }
+
+    /* Still an animation, so animationend keeps firing and the outgoing
+       layer is removed as usual */
+    .cardLayer,
+    .cardLayer[data-leaving] {
+        animation-duration: 0.01ms;
+    }
+}
+
+.metricToggle {
+    display: inline-flex;
+    gap: 2px;
+    background: var(--color-surface);
+    border-radius: 7px;
+    padding: 2px;
+}
+
+.metricButton {
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    padding: 3px 10px;
+    color: var(--color-muted-foreground);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.metricButton:hover {
+    color: var(--color-foreground);
+}
+
+/* The selected pill carries the metric's own colour, tying the toggle to
+   the grid it drives. */
+.metricButton[aria-pressed="true"] {
+    background: var(--color-page);
+    color: var(--primary-ink, var(--primary));
+    box-shadow: 0 0 0 1px var(--color-art-ring), 0 1px 2px #0000000f;
+}
+
+/* Shown in place of the days when the stats request fails, so an empty grid
+   is never mistaken for a year of nothing. */
+.notice {
+    color: var(--color-muted-foreground);
+    font-size: 12px;
+}

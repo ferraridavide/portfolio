@@ -1,0 +1,240 @@
+---
+interface Props {
+	/* Keep the cover visible while crossing gaps within this region. */
+	scope: string;
+}
+
+const { scope } = Astro.props;
+---
+
+<div class="cover-tooltip" data-cover-tooltip data-cover-scope={scope} aria-hidden="true"></div>
+
+<style>
+	.cover-tooltip {
+		--cover-ring: #00000012;
+		/* Three stacked layers: a tight contact shadow, a mid spread, and a wide
+		   ambient one. Low opacities so it reads as lift, not as a dark band */
+		--cover-shadow-near: #00000014;
+		--cover-shadow-mid: #00000021;
+		--cover-shadow-far: #00000030;
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 50;
+		width: 20rem;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		border-radius: 10px;
+		background-color: var(--color-page);
+		/* The project themes via prefers-color-scheme rather than `color-scheme`,
+		   so light-dark() would be stuck on its light value here */
+		box-shadow:
+			0 0 0 1px var(--cover-ring),
+			0 1px 2px -1px var(--cover-shadow-near),
+			0 6px 12px -4px var(--cover-shadow-mid),
+			0 22px 44px -12px var(--cover-shadow-far);
+		/* The card never eats a hover: the pointer keeps addressing the links */
+		pointer-events: none;
+		opacity: 0;
+		scale: 0.96;
+		transition:
+			opacity 0.18s ease,
+			scale 0.18s ease;
+		/* Positioned from JS; kept off the main grid so it can't shift layout */
+		will-change: transform;
+	}
+
+	.cover-tooltip[data-visible] {
+		opacity: 1;
+		scale: 1;
+	}
+
+	.cover-tooltip :global(.cover-layer) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0;
+		filter: blur(14px);
+		scale: 0.96;
+		transition:
+			opacity 0.32s ease,
+			filter 0.32s ease,
+			scale 0.32s ease;
+	}
+
+	.cover-tooltip :global(.cover-layer[data-active]) {
+		opacity: 1;
+		filter: blur(0);
+		scale: 1;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.cover-tooltip {
+			--cover-ring: #ffffff1f;
+			/* Shadows carry less on a dark page, so lean on deeper blacks */
+			--cover-shadow-near: #0000004d;
+			--cover-shadow-mid: #00000061;
+			--cover-shadow-far: #0000007a;
+		}
+	}
+
+	/* Coarse pointers get no tooltip at all: there is no hover to follow */
+	@media (hover: none), (pointer: coarse) {
+		.cover-tooltip {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cover-tooltip,
+		.cover-tooltip :global(.cover-layer) {
+			transition-duration: 0.01ms;
+		}
+
+		.cover-tooltip :global(.cover-layer) {
+			filter: none;
+			scale: 1;
+		}
+	}
+</style>
+
+<script>
+	const GAP = 20; /* distance from the cursor */
+	const EDGE = 12; /* keep this much clear of the viewport edges */
+
+	function initCoverTooltip(tooltip: HTMLElement) {
+		const scope = document.querySelector<HTMLElement>(tooltip.dataset.coverScope ?? '');
+		if (!scope || !window.matchMedia('(hover: hover)').matches) return;
+
+		const layers = new Map<string, HTMLImageElement>();
+		for (const row of scope.querySelectorAll<HTMLElement>('[data-cover]')) {
+			const src = row.dataset.cover;
+			if (!src || layers.has(src)) continue;
+			const layer = new Image();
+			layer.className = 'cover-layer';
+			layer.alt = '';
+			layer.loading = 'lazy';
+			layer.decoding = 'async';
+			layer.fetchPriority = 'low';
+			if (row.dataset.coverSrcset) layer.srcset = row.dataset.coverSrcset;
+			layer.src = src;
+			layers.set(src, layer);
+			tooltip.append(layer);
+		}
+		if (!layers.size) return;
+
+		let activeId: string | null = null;
+		let pointerX = 0;
+		let pointerY = 0;
+		let frame = 0;
+
+		/* Covers are lazy so they cost nothing to visitors who never reach this
+		   section, but they must be decoded *before* the first hover — otherwise
+		   the crossfade sits on the previous cover while the new one downloads */
+		const preload = () => {
+			for (const layer of layers.values()) layer.loading = 'eager';
+		};
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				preload();
+				observer.disconnect();
+			},
+			{ rootMargin: '200px' },
+		);
+		observer.observe(scope);
+
+		function place() {
+			frame = 0;
+			const { offsetWidth: w, offsetHeight: h } = tooltip;
+			/* Flip to the left of the cursor rather than clipping at the edge */
+			const overflowsRight = pointerX + GAP + w > window.innerWidth - EDGE;
+			const x = overflowsRight ? pointerX - GAP - w : pointerX + GAP;
+			const y = Math.min(Math.max(pointerY - h / 2, EDGE), window.innerHeight - h - EDGE);
+			tooltip.style.transform = `translate3d(${Math.max(x, EDGE)}px, ${y}px, 0)`;
+		}
+
+		function schedulePlace() {
+			frame ||= requestAnimationFrame(place);
+		}
+
+		function swapTo(id: string) {
+			layers.get(activeId ?? '')?.removeAttribute('data-active');
+			layers.get(id)?.setAttribute('data-active', '');
+			activeId = id;
+		}
+
+		let pendingId: string | null = null;
+
+		function setActive(id: string) {
+			if (id === activeId || id === pendingId) return;
+			const layer = layers.get(id);
+			if (!layer) return;
+
+			if (layer.complete && layer.naturalWidth > 0) {
+				pendingId = null;
+				swapTo(id);
+				return;
+			}
+
+			/* Hold the current cover until the next one can be painted in one go */
+			pendingId = id;
+			layer.decode().then(
+				() => {
+					if (pendingId !== id) return; /* pointer moved on already */
+					pendingId = null;
+					swapTo(id);
+				},
+				() => {
+					pendingId = null;
+				},
+			);
+		}
+
+		function hide() {
+			tooltip.removeAttribute('data-visible');
+			/* Drop any decode still in flight so it cannot swap in behind us */
+			pendingId = null;
+		}
+
+		scope.addEventListener('pointermove', (event) => {
+			if (event.pointerType !== 'mouse') return;
+			pointerX = event.clientX;
+			pointerY = event.clientY;
+
+			const row = (event.target as Element | null)?.closest<HTMLElement>('[data-cover]');
+			const id = row?.dataset.cover;
+			const hasCover = Boolean(id && layers.has(id));
+
+			/* An item with no cover has nothing to show, so the card gets out of
+			   the way rather than lingering on the previous item's image */
+			if (row && !hasCover) {
+				hide();
+				return;
+			}
+
+			/* Falling through here means the pointer is in the gap between two
+			   titles: hold the current cover so the card survives the trip */
+			if (hasCover) {
+				setActive(id!);
+				if (!tooltip.hasAttribute('data-visible')) {
+					place(); /* position before the fade-in, never flash at 0,0 */
+					tooltip.setAttribute('data-visible', '');
+					return;
+				}
+			}
+
+			if (tooltip.hasAttribute('data-visible')) schedulePlace();
+		});
+
+		scope.addEventListener('pointerleave', hide);
+		/* A scroll under a still cursor would leave the card stranded */
+		window.addEventListener('scroll', hide, { passive: true });
+	}
+
+	for (const tooltip of document.querySelectorAll<HTMLElement>('[data-cover-tooltip]')) {
+		initCoverTooltip(tooltip);
+	}
+</script>

@@ -1,0 +1,26 @@
+---
+title: "Alpe Giumello"
+pubDate: 2025-02-23
+description: "Two smooth flights above the three branches of Lake Como, on my first day at Alpe Giumello."
+cover: ./cover.jpg
+---
+
+import IgcViewer from '../../../components/IgcViewer.tsx';
+import Carousel from '../../../components/Carousel.astro';
+import track from './track.igc?url';
+import photo1 from './1.jpg';
+import photo2 from './2.jpg';
+import photo3 from './3.jpg';
+import photo4 from './4.jpg';
+import photo5 from './5.jpg';
+import photo6 from './6.jpg';
+
+This was my first time flying at Alpe Giumello. I completed two flights: one in the early afternoon and another around 4pm.
+
+During the second flight, I launched westward, passing close to the [Big Bench 223](https://maps.app.goo.gl/G3rno3ph7wJbKR4V6). I could see people sitting on it and waved at them. Looking up, I could see the three branches of Lake Como through a light haze before making a U-turn back towards the landing site.
+
+<IgcViewer client:visible track={track} label="Alpe Giumello flight replay" />
+
+Both flights were smooth, without turbulence or thermals.
+
+<Carousel images={[photo2, photo1, photo4, photo5, photo6, photo3]} label="Photos from Alpe Giumello" />

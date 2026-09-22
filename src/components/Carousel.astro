@@ -1,0 +1,109 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+  images: ImageMetadata[];
+  /* Names the set for assistive tech; the individual photos carry no
+     information the surrounding prose does not already give */
+  label?: string;
+}
+
+const { images, label = 'Photos' } = Astro.props;
+---
+
+<div class="carousel" role="group" aria-label={label}>
+  {
+    images.map((image) => (
+      <Image src={image} alt="" height={800} densities={[1, 2]} format="webp" quality={75} loading="lazy" />
+    ))
+  }
+</div>
+
+<style is:global>
+  /* Makes `cqw` below resolve to the page's content width. `vw` would have
+     included the scrollbar, leaving the "full-bleed" track a scrollbar wider
+     than the page and half a scrollbar off-centre.
+     Scoped to pages that actually have a carousel, because a container is
+     also a containing block for fixed-position descendants. */
+  body:has(.carousel) {
+    container-type: inline-size;
+    /* `clip` rather than `hidden`: `hidden` would turn the body into a
+       scroll container, which breaks `position: sticky` inside it */
+    overflow-x: clip;
+  }
+</style>
+
+<style>
+  .carousel {
+    height: min(calc(100vw * 3 / 4), 50vh);
+    display: flex;
+    gap: 1rem;
+    overflow: auto;
+  }
+
+  .carousel img {
+    margin: 0;
+    height: 100%;
+    width: auto;
+    border-radius: 10px;
+    object-fit: cover;
+    scroll-snap-align: center;
+  }
+
+  /* Scroll-driven animations are the whole point of the full-bleed treatment:
+     without them the track stays inside the column as a plain scroller */
+  @supports (view-timeline-axis: inline) {
+    .carousel {
+      /* Breaks out of the article column to the full width of the page */
+      margin-inline: calc(50% - 50cqw);
+      width: 100cqw;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .carousel img {
+      view-timeline-name: --carousel-item;
+      view-timeline-axis: inline;
+      animation: linear rotate-cover both;
+      animation-timeline: --carousel-item;
+    }
+
+    /* Half-viewport runway at both ends, so the first and last photo can each
+       reach the centre of the screen and play their animation in full */
+    .carousel img:first-child {
+      margin-left: 50%;
+    }
+
+    .carousel img:last-child {
+      margin-right: 50%;
+    }
+  }
+
+  /* Dim and shrink away from centre: the photo in the middle is the subject */
+  @keyframes rotate-cover {
+    0%,
+    35% {
+      filter: brightness(0.5);
+      transform: scale(0.8);
+    }
+    50% {
+      filter: brightness(1);
+      transform: scale(1);
+    }
+    65%,
+    100% {
+      filter: brightness(0.5);
+      transform: scale(0.8);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel img {
+      animation: none;
+    }
+  }
+</style>

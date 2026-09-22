@@ -1,0 +1,29 @@
+---
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import Prose from '../../layouts/Prose.astro';
+import Comments from '../../components/Comments.astro';
+import { getFlights } from '../../lib/flying';
+
+export const getStaticPaths = (async () => {
+	const flights = await getFlights();
+	return flights.map((flight) => ({ params: { id: flight.id }, props: { flight } }));
+}) satisfies GetStaticPaths;
+
+const { flight } = Astro.props;
+const { Content, headings } = await render(flight);
+---
+
+<Prose
+	title={flight.data.title}
+	description={flight.data.description}
+	date={flight.data.pubDate}
+	updated={flight.data.updatedDate}
+	cover={flight.data.cover}
+	headings={headings}
+	backHref={`${import.meta.env.BASE_URL}flying`}
+	backLabel="Flying"
+>
+	<Content />
+	<Comments slot="comments" />
+</Prose>
