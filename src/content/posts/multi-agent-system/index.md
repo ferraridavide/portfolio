@@ -17,7 +17,9 @@ Modern LLMs are remarkably capable at operating in this kind of unstructured, ju
 
 ## Why a multi-agent system?
 
-Imagine your manager drops by your desk one morning and says: _"Right, so, here's 300 pages of Prowler output, some internal notes from a call that happened six months ago, a contract PDF, a spreadsheet of cost allocation data across fourteen accounts, the client's org structure which nobody has documented properly, you'll need to check their root account MFA, also the SCPs, landing zone setup, VPC peering configs, logging pipelines, whether they're tagging resources correctly for FinOps, their IAM hygiene, oh and there's a compliance framework they mentioned, SOC 2 I think, or was it ISO, anyway figure it out, the networking guy left some notes somewhere, check those too, and we need the draft by Friday."_
+Imagine your manager drops by your desk one morning and says: 
+
+> _"Right, so, here's 300 pages of Prowler output, some internal notes from a call that happened six months ago, a contract PDF, a spreadsheet of cost allocation data across fourteen accounts, the client's org structure which nobody has documented properly, you'll need to check their root account MFA, also the SCPs, landing zone setup, VPC peering configs, logging pipelines, whether they're tagging resources correctly for FinOps, their IAM hygiene, oh and there's a compliance framework they mentioned, SOC 2 I think, or was it ISO, anyway figure it out, the networking guy left some notes somewhere, check those too, and we need the draft by Friday."_
 
 All in one breath. No pause. Just a thud as the stack of paper lands on your desk.
 
