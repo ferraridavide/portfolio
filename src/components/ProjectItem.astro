@@ -1,10 +1,11 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { coverAttributes } from '../lib/covers';
+import type { ReactNode } from 'react';
 
 interface Props {
   name: string;
-  desc: string;
+  desc: string | ReactNode;
   href?: string;
   year: string;
   cover?: ImageMetadata | string;

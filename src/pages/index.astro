@@ -1,7 +1,7 @@
 ---
 import { Font, Image } from "astro:assets";
 import davide from "../assets/davide.jpg";
-import { IconChevronRight, IconBrandGithub, IconBrandX, IconBrandInstagram, IconBrandLinkedin, IconBrandTelegram, IconKey } from '@tabler/icons-astro';
+import { IconChevronRight, IconBrandGithub, IconBrandX, IconBrandInstagram, IconBrandLinkedin, IconBrandTelegram, IconStarFilled } from '@tabler/icons-astro';
 import "../styles/global.css";
 
 import ProjectItem from "../components/ProjectItem.astro";
@@ -86,14 +86,9 @@ const posts = await getPosts();
         </div>
         
       </div>
-
-
       
-<section class="flex flex-col gap-2">
-        <NowPlaying client:load />
-        </section> 
-
-
+      <NowPlaying client:load />
+      
       <section class="flex flex-col gap-2">
         <Activity client:load />
         </section> 
@@ -132,7 +127,7 @@ const posts = await getPosts();
           <ProjectItem
           name="ChatGPTPowerToys"
           cover={chatgptpowertoysCover}
-          desc="PowerToys Run plugin for launching ChatGPT queries in the browser (with +250 stars on GitHub! 🤩)"
+          desc={<>PowerToys Run plugin for launching ChatGPT queries in the browser (250+ <IconStarFilled class="inline size-[1em] align-[-0.125em]" />)</>}
           href="https://github.com/ferraridavide/ChatGPTPowerToys"
           year="2024"
           />

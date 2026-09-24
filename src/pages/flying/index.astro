@@ -1,5 +1,5 @@
 ---
-import { Font } from 'astro:assets';
+import { Font, getImage } from 'astro:assets';
 import { IconArrowLeft } from '@tabler/icons-astro';
 import CoverTooltip from '../../components/CoverTooltip.astro';
 import FlightItem from '../../components/FlightItem.astro';
@@ -11,6 +11,34 @@ const flights = await getFlights();
 const title = 'Flying';
 const description =
 	'Paragliding flights, with the GPS track of each one replayed over the terrain it was flown across.';
+
+
+import Photos from "../../components/Photos.tsx";
+import giumello1 from "../../content/flying/alpe-giumello/1.jpg";
+import giumello2 from "../../content/flying/alpe-giumello/2.jpg";
+import giumello3 from "../../content/flying/alpe-giumello/3.jpg";
+import turesCover from "../../content/flying/campo-tures/cover.jpg";
+import castelluccio1 from "../../content/flying/castelluccio-di-norcia/1.jpg";
+import castelluccio2 from "../../content/flying/castelluccio-di-norcia/2.jpg";
+import castelluccio3 from "../../content/flying/castelluccio-di-norcia/3.jpg";
+
+/* `src` is sized for the enlarged card on a 2x screen (~210 CSS px wide),
+   `full` for a pinch at max zoom on a 3x phone (~390 CSS px wide) */
+const photos = await Promise.all(
+  [
+    [giumello1, "Alpe Giumello"],
+    [giumello2, "Alpe Giumello"],
+    [castelluccio1, "Castelluccio"],
+    [turesCover, "Campo Tures"],
+    [castelluccio2, "Piani di Castelluccio"],
+    [giumello3, "Pizza between flights!"],
+    [castelluccio3, "Norcia"],
+  ].map(async ([src, caption]) => ({
+    src: (await getImage({ src, width: 440, height: 528, fit: "cover", format: "webp", quality: 75 })).src,
+    full: (await getImage({ src, width: 1200, height: 1440, fit: "cover", format: "webp", quality: 80 })).src,
+    caption,
+  })),
+);
 ---
 
 <html lang="en">
@@ -47,6 +75,8 @@ const description =
 				{flights.map((flight) => <FlightItem flight={flight} />)}
 			</section>
 			<CoverTooltip scope="#flights" />
+
+			<Photos client:load photos={photos} label="Photos from my flights" />
 
 			<div>
 				<a

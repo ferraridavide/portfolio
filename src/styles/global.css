@@ -45,6 +45,7 @@
 
 @layer base {
   html {
+    scrollbar-gutter: stable;
     font-family: var(--font-sans);
     -webkit-text-size-adjust: 100%;
   }
