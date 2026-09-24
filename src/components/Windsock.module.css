@@ -1,0 +1,197 @@
+/* inline-flex rather than inline, so a flex parent lines the sock up by its
+   own box instead of by a text line around it */
+.root {
+  display: inline-flex;
+  vertical-align: -0.2em;
+}
+
+.button {
+  display: inline-flex;
+  margin-left: 0.2em;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  cursor: help;
+  /* Keep the tap from also selecting the word next to it */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sock {
+  --orange: oklch(0.7 0.19 45);
+  width: var(--sock-size, 1.25em);
+  height: var(--sock-size, 1.25em);
+  overflow: visible;
+  transition: scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Mirroring the whole icon moves the pole too, so the sock swings over to
+   the other side of it instead of pointing off the edge of the box */
+.sock[data-flipped] {
+  scale: -1 1;
+}
+
+.pole {
+  stroke: var(--color-gray-1100);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.shadow {
+  fill: var(--color-gray-1200);
+  opacity: 0.16;
+}
+
+.ring {
+  fill: var(--color-gray-1200);
+}
+
+.stripe {
+  fill: var(--orange);
+}
+
+.stripeLight {
+  fill: #fff;
+  stroke: color-mix(in oklch, var(--orange) 45%, transparent);
+  stroke-width: 0.35;
+  stroke-linejoin: round;
+}
+
+/* SVG children rotate about their parent's origin, which the translate on
+   each stripe puts at the seam with the previous one */
+.hinge {
+  /* A slight overshoot, so the sock bounces as it fills */
+  transition: rotate 1.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.flutter {
+  animation: flutter var(--period, 1.6s) ease-in-out var(--delay, 0s) infinite alternate;
+}
+
+@keyframes flutter {
+  from { rotate: calc(var(--amp, 1deg) * -1); }
+  to { rotate: var(--amp, 1deg); }
+}
+
+/* Base card in HoverCard.module.css; these are the level colours it uses */
+.card {
+  --flyable: oklch(0.6 0.15 150);
+  --marginal: oklch(0.7 0.15 70);
+  --grounded: oklch(0.6 0.19 25);
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.window {
+  margin-left: auto;
+  font-weight: 450;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted-foreground);
+}
+
+.dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-gray-1100);
+}
+
+[data-level="flyable"] > .dot { background: var(--flyable); }
+[data-level="marginal"] > .dot { background: var(--marginal); }
+[data-level="grounded"] > .dot { background: var(--grounded); }
+
+/* Only the live pick breathes; the others are just a legend */
+.verdict[data-level="flyable"] > .dot {
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--flyable) 60%, transparent); }
+  to { box-shadow: 0 0 0 6px transparent; }
+}
+
+.site,
+.muted,
+.key,
+.credit {
+  color: var(--color-muted-foreground);
+}
+
+.rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  margin-top: 6px;
+}
+
+.row {
+  display: contents;
+}
+
+.value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.arrow {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+}
+
+.others {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-code-border);
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.other {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.credit {
+  margin-top: 4px;
+  font-size: 0.6875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* On a dark page a light shadow would read as a glow; black just deepens it */
+  .shadow {
+    fill: #000;
+    opacity: 0.35;
+  }
+
+  .stripeLight {
+    stroke: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flutter,
+  .verdict[data-level="flyable"] > .dot {
+    animation: none;
+  }
+
+  .hinge,
+  .sock {
+    transition-duration: 0.01ms;
+  }
+}

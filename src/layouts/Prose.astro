@@ -1,7 +1,7 @@
 ---
 import { Font, Image } from 'astro:assets';
 import type { MarkdownHeading } from 'astro';
-import { IconArrowLeft } from '@tabler/icons-astro';
+import BackLink from '../components/BackLink.astro';
 import PostNavigation from '../components/PostNavigation.astro';
 import Seo from '../components/Seo.astro';
 import { formatDate } from '../lib/posts';
@@ -62,6 +62,11 @@ const {
 	</head>
 	<body>
 		<div class="relative mx-auto max-w-173 px-6 py-12 leading-relaxed sm:py-24">
+			{/* Mirrors the "On this page" rail in the left gutter on wide screens,
+			    replacing the link at the bottom of the article */}
+			<aside class="back-rail">
+				<BackLink href={backHref} label={backLabel} />
+			</aside>
 			{headings.length > 0 && <PostNavigation headings={headings} />}
 			<main>
 				<h1 class:list={['prose-title', date ? 'mb-2' : 'mb-6']}>
@@ -94,19 +99,31 @@ const {
 					<slot />
 				</div>
 				<slot name="comments" />
-				<a
-					class="group mt-10 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-[450] text-gray-1200 transition-colors duration-200 hover:bg-gray-1100/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-1200"
-					href={backHref}
-				>
-					<IconArrowLeft
-						class="motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 motion-safe:group-focus-visible:-translate-x-0.5"
-						size={16}
-						stroke={1.75}
-						aria-hidden="true"
-					/>
-					{backLabel}
-				</a>
+				<BackLink class="mt-10 xl:hidden" href={backHref} label={backLabel} />
 			</main>
 		</div>
 	</body>
 </html>
+
+<style>
+	.back-rail {
+		display: none;
+	}
+
+	@media (min-width: 80rem) {
+		.back-rail {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+			position: absolute;
+			inset-block: 6rem;
+			right: calc(100% + 1.5rem);
+			width: 13rem;
+		}
+	}
+
+	.back-rail > :global(a) {
+		position: sticky;
+		top: 3rem;
+	}
+</style>

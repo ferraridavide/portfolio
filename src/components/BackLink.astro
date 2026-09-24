@@ -1,0 +1,27 @@
+---
+import { IconArrowLeft } from '@tabler/icons-astro';
+
+interface Props {
+	href: string;
+	label: string;
+	class?: string;
+}
+
+const { href, label, class: className } = Astro.props;
+---
+
+<a
+	class:list={[
+		'group inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-[450] text-gray-1200 transition-colors duration-200 hover:bg-gray-1100/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-1200',
+		className,
+	]}
+	href={href}
+>
+	<IconArrowLeft
+		class="motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 motion-safe:group-focus-visible:-translate-x-0.5"
+		size={16}
+		stroke={1.75}
+		aria-hidden="true"
+	/>
+	{label}
+</a>

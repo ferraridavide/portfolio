@@ -4,6 +4,7 @@ import { IconArrowLeft } from '@tabler/icons-astro';
 import CoverTooltip from '../../components/CoverTooltip.astro';
 import FlightItem from '../../components/FlightItem.astro';
 import Seo from '../../components/Seo.astro';
+import Windsock from '../../components/Windsock.tsx';
 import { getFlights } from '../../lib/flying';
 import '../../styles/global.css';
 
@@ -78,7 +79,7 @@ const photos = await Promise.all(
 
 			<Photos client:load photos={photos} label="Photos from my flights" />
 
-			<div>
+			<div class="flex items-center justify-between">
 				<a
 					class="group inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-sm font-[450] text-gray-1200 transition-colors duration-200 hover:bg-gray-1100/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-1200"
 					href={import.meta.env.BASE_URL}
@@ -91,6 +92,7 @@ const photos = await Promise.all(
 					/>
 					Back
 				</a>
+				<Windsock client:idle size="2rem" />
 			</div>
 		</main>
 	</body>
