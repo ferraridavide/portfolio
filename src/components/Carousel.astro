@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-astro';
 
 interface Props {
   images: ImageMetadata[];
@@ -9,15 +10,72 @@ interface Props {
 }
 
 const { images, label = 'Photos' } = Astro.props;
+const count = images.length;
 ---
 
-<div class="carousel" role="group" aria-label={label}>
-  {
-    images.map((image) => (
-      <Image src={image} alt="" height={800} densities={[1, 2]} format="webp" quality={75} loading="lazy" />
-    ))
-  }
-</div>
+<figure class="carousel" role="region" aria-roledescription="carousel" aria-label={label} data-carousel>
+  <div class="track" data-track>
+    {
+      images.map((image, i) => (
+        <button type="button" class="thumb" data-thumb aria-label={`Open photo ${i + 1} of ${count}`}>
+          <Image src={image} alt="" height={400} densities={[1, 2]} format="webp" quality={75} loading="lazy" />
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="controls">
+    <span class="count">{count} photos</span>
+    <div class="nav" data-nav>
+      <button type="button" class="icon-button" data-prev aria-label="Previous photos" disabled>
+        <IconChevronLeft size={16} stroke={1.75} aria-hidden="true" />
+      </button>
+      <button type="button" class="icon-button" data-next aria-label="Next photos">
+        <IconChevronRight size={16} stroke={1.75} aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+
+  <dialog class="lightbox" aria-label={label} data-lightbox>
+    <div class="stage" data-stage>
+      {
+        images.map((image, i) => (
+          <div
+            class="slide"
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${i + 1} of ${count}`}
+            style={`--ratio: ${(image.width / image.height).toFixed(4)}`}
+          >
+            <Image
+              src={image}
+              alt=""
+              widths={[800, 1600, 2400]}
+              sizes={`min(calc(100vw - 3rem), calc((100vh - 9rem) * ${(image.width / image.height).toFixed(4)}))`}
+              format="webp"
+              quality={80}
+              loading="lazy"
+            />
+          </div>
+        ))
+      }
+    </div>
+
+    <button type="button" class="icon-button close" data-close aria-label="Close" autofocus>
+      <IconX size={16} stroke={1.75} aria-hidden="true" />
+    </button>
+
+    <div class="bar">
+      <button type="button" class="icon-button" data-lightbox-prev aria-label="Previous photo">
+        <IconChevronLeft size={16} stroke={1.75} aria-hidden="true" />
+      </button>
+      <span class="counter" aria-live="polite" data-counter>1 / {count}</span>
+      <button type="button" class="icon-button" data-lightbox-next aria-label="Next photo">
+        <IconChevronRight size={16} stroke={1.75} aria-hidden="true" />
+      </button>
+    </div>
+  </dialog>
+</figure>
 
 <style is:global>
   /* Makes `cqw` below resolve to the page's content width. `vw` would have
@@ -31,79 +89,347 @@ const { images, label = 'Photos' } = Astro.props;
        scroll container, which breaks `position: sticky` inside it */
     overflow-x: clip;
   }
+
+  /* The page stays put under an open lightbox; `scrollbar-gutter: stable`
+     on the root keeps the layout from shifting when its scrollbar goes */
+  html:has(.lightbox[open]) {
+    overflow: hidden;
+  }
+
+  /* Resolved to pixels where it is set, so the track can still read the
+     page width after its own figure has become the nearest container */
+  @property --page-width {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+  }
 </style>
 
 <style>
   .carousel {
-    height: min(calc(100vw * 3 / 4), 50vh);
+    /* The page, from the body container; `cqw` inside the figure is the column */
+    --page-width: 100cqw;
+    --gutter: calc((var(--page-width) - 100cqw) / 2);
+    --height: min(clamp(16rem, 80cqw, 24rem), 70vh);
+
+    container-type: inline-size;
+    margin: 0.5rem 0;
+  }
+
+  /* Breaks out of the article column to the full width of the page, but rests
+     with the first photo on the column's left edge, like the copy around it */
+  .track {
+    /* The offset parent the script measures photos against */
+    position: relative;
     display: flex;
-    gap: 1rem;
-    overflow: auto;
+    gap: 0.75rem;
+    width: var(--page-width);
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    /* Room for the focus ring, which the scroller would otherwise clip */
+    padding-block: 4px;
+    margin-block: -4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
   }
 
-  .carousel img {
-    margin: 0;
-    height: 100%;
-    width: auto;
+  .track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .thumb {
+    flex: none;
+    height: var(--height);
+    padding: 0;
     border-radius: 10px;
+    cursor: zoom-in;
+    scroll-snap-align: start;
+  }
+
+  .thumb:focus-visible {
+    outline: 2px solid var(--color-gray-1200);
+    outline-offset: 2px;
+  }
+
+  /* Same radius and hairline ring as the cover above it */
+  .thumb img {
+    display: block;
+    width: auto;
+    height: 100%;
+    /* A landscape photo on a phone would otherwise fill the column and hide
+       the next one; cropped a little instead, so there is always a peek */
+    max-width: 85cqw;
     object-fit: cover;
+    margin: 0;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px var(--color-art-ring);
+    background-color: var(--color-surface);
+    transition: filter 0.2s ease-out;
+  }
+
+  @media (hover: hover) {
+    .thumb:hover img {
+      filter: brightness(0.92);
+    }
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+  }
+
+  .count {
+    font-size: 0.875rem;
+    color: var(--color-muted-foreground);
+  }
+
+  .nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .nav[hidden] {
+    display: none;
+  }
+
+  /* The back link's chip, as a circle */
+  .icon-button {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background-color: var(--color-surface);
+    color: var(--color-gray-1200);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .icon-button:hover:not(:disabled) {
+    background-color: color-mix(in oklch, var(--color-gray-1100) 15%, transparent);
+  }
+
+  .icon-button:focus-visible {
+    outline: 2px solid var(--color-gray-1200);
+    outline-offset: 2px;
+  }
+
+  .icon-button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* --- Lightbox -------------------------------------------------------- */
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-gray-1200);
+    overflow: hidden;
+  }
+
+  .lightbox::backdrop {
+    background-color: color-mix(in oklch, var(--color-page) 92%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .lightbox[open],
+  .lightbox[open]::backdrop {
+    animation: fade-in 0.2s ease-out;
+  }
+
+  .stage {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .stage::-webkit-scrollbar {
+    display: none;
+  }
+
+  .slide {
+    flex: 0 0 100%;
+    display: grid;
+    place-items: center;
+    padding: 4rem 1.5rem 5rem;
     scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
 
-  /* Scroll-driven animations are the whole point of the full-bleed treatment:
-     without them the track stays inside the column as a plain scroller */
-  @supports (view-timeline-axis: inline) {
-    .carousel {
-      /* Breaks out of the article column to the full width of the page */
-      margin-inline: calc(50% - 50cqw);
-      width: 100cqw;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-    }
-
-    .carousel::-webkit-scrollbar {
-      display: none;
-    }
-
-    .carousel img {
-      view-timeline-name: --carousel-item;
-      view-timeline-axis: inline;
-      animation: linear rotate-cover both;
-      animation-timeline: --carousel-item;
-    }
-
-    /* Half-viewport runway at both ends, so the first and last photo can each
-       reach the centre of the screen and play their animation in full */
-    .carousel img:first-child {
-      margin-left: 50%;
-    }
-
-    .carousel img:last-child {
-      margin-right: 50%;
-    }
+  /* Sized from the ratio rather than the file, so the box is already in
+     place while a lazy rendition is still on its way */
+  .slide img {
+    display: block;
+    width: min(calc(100vw - 3rem), calc((100vh - 9rem) * var(--ratio)));
+    width: min(calc(100vw - 3rem), calc((100dvh - 9rem) * var(--ratio)));
+    height: auto;
+    aspect-ratio: var(--ratio);
+    margin: 0;
+    border: 0;
+    border-radius: 10px;
+    box-shadow:
+      0 0 0 1px var(--color-art-ring),
+      0 22px 44px -12px #00000030;
+    background-color: var(--color-surface);
   }
 
-  /* Dim and shrink away from centre: the photo in the middle is the subject */
-  @keyframes rotate-cover {
-    0%,
-    35% {
-      filter: brightness(0.5);
-      transform: scale(0.8);
-    }
-    50% {
-      filter: brightness(1);
-      transform: scale(1);
-    }
-    65%,
-    100% {
-      filter: brightness(0.5);
-      transform: scale(0.8);
+  .close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .bar {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .counter {
+    min-width: 3.5rem;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: var(--color-muted-foreground);
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .carousel img {
+    .lightbox[open],
+    .lightbox[open]::backdrop {
       animation: none;
     }
   }
 </style>
+
+<script>
+  const smooth = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth');
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const thumbs = [...track.querySelectorAll<HTMLButtonElement>('[data-thumb]')];
+    const nav = root.querySelector<HTMLElement>('[data-nav]')!;
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+
+    const lightbox = root.querySelector<HTMLDialogElement>('[data-lightbox]')!;
+    const stage = lightbox.querySelector<HTMLElement>('[data-stage]')!;
+    const counter = lightbox.querySelector<HTMLElement>('[data-counter]')!;
+    const lightboxPrev = lightbox.querySelector<HTMLButtonElement>('[data-lightbox-prev]')!;
+    const lightboxNext = lightbox.querySelector<HTMLButtonElement>('[data-lightbox-next]')!;
+
+    /* The scroll offset that rests a photo on the column's left edge */
+    const restingOffset = (thumb: HTMLElement) =>
+      thumb.offsetLeft - parseFloat(getComputedStyle(track).scrollPaddingInlineStart);
+
+    const columnWidth = () => {
+      const gutter = parseFloat(getComputedStyle(track).scrollPaddingInlineStart);
+      return track.clientWidth - gutter * 2;
+    };
+
+    const updateNav = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      nav.hidden = max <= 1;
+      prev.disabled = track.scrollLeft <= 1;
+      next.disabled = track.scrollLeft >= max - 1;
+    };
+
+    /* A page at a time: forwards to the first photo cut off by the column's
+       right edge, backwards to the first one that would end up in view */
+    next.addEventListener('click', () => {
+      const edge = track.scrollLeft + columnWidth();
+      const target = thumbs.find((thumb) => restingOffset(thumb) + thumb.offsetWidth > edge + 1);
+      track.scrollTo({ left: target ? restingOffset(target) : track.scrollWidth, behavior: smooth() });
+    });
+
+    prev.addEventListener('click', () => {
+      const edge = track.scrollLeft - columnWidth();
+      const target = thumbs.find((thumb) => restingOffset(thumb) >= edge - 1);
+      track.scrollTo({ left: target ? Math.min(restingOffset(target), track.scrollLeft - 1) : 0, behavior: smooth() });
+    });
+
+    track.addEventListener('scroll', updateNav, { passive: true });
+    new ResizeObserver(updateNav).observe(track);
+
+    /* --- Lightbox --- */
+
+    let current = 0;
+
+    const show = (index: number, behavior: ScrollBehavior) => {
+      current = Math.max(0, Math.min(thumbs.length - 1, index));
+      stage.scrollTo({ left: current * stage.clientWidth, behavior });
+    };
+
+    const updateCounter = () => {
+      current = Math.round(stage.scrollLeft / stage.clientWidth);
+      counter.textContent = `${current + 1} / ${thumbs.length}`;
+      lightboxPrev.disabled = current === 0;
+      lightboxNext.disabled = current === thumbs.length - 1;
+    };
+
+    thumbs.forEach((thumb, i) =>
+      thumb.addEventListener('click', () => {
+        lightbox.showModal();
+        show(i, 'instant');
+        updateCounter();
+      }),
+    );
+
+    stage.addEventListener('scroll', updateCounter, { passive: true });
+    lightboxPrev.addEventListener('click', () => show(current - 1, smooth()));
+    lightboxNext.addEventListener('click', () => show(current + 1, smooth()));
+    lightbox.querySelector('[data-close]')!.addEventListener('click', () => lightbox.close());
+
+    /* The space around a photo is backdrop too */
+    stage.addEventListener('click', (event) => {
+      if (!(event.target instanceof HTMLImageElement)) lightbox.close();
+    });
+
+    lightbox.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(current - 1, smooth());
+      else if (event.key === 'ArrowRight') show(current + 1, smooth());
+      else return;
+      event.preventDefault();
+    });
+
+    /* Hands back to the photo last looked at, scrolled into the track's view */
+    lightbox.addEventListener('close', () => {
+      const thumb = thumbs[current];
+      const offset = restingOffset(thumb);
+      if (offset < track.scrollLeft || offset + thumb.offsetWidth > track.scrollLeft + columnWidth()) {
+        track.scrollTo({ left: offset, behavior: 'instant' });
+      }
+      thumb.focus({ preventScroll: true });
+    });
+  }
+</script>
